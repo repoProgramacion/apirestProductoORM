@@ -1,69 +1,109 @@
-# API REST de Productos
+# API REST de Productos con NestJS y Prisma
 
-API REST sencilla para productos con `Node.js`, `TypeScript`, `Express 5`, `MySQL` y validacion con `Zod`.
+API REST sencilla para productos usando `NestJS`, `Prisma ORM` y `MySQL`.
 
-## Requisitos
+## Tecnologias
 
-- Node.js 22 o superior
-- MySQL 8 o superior
+- Node.js 22+
+- NestJS
+- Prisma ORM
+- MySQL 8+
+- Jest
+- Postman
 
-## Tecnologias usadas
+## Datos del producto
 
-- `express@5`
-- `mysql2/promise`
-- `zod`
-- `tsx`
-- `typescript`
+Cada producto tiene estos campos:
 
-## Estructura
+- `id`
+- `nombre`
+- `descripcion`
+- `cantidad`
+- `estado`
+- `fotoUrl`
+
+## Estructura del proyecto
 
 ```text
 src/
-  app.ts
-  server.ts
-  config/
-  db/
-  middleware/
-  modules/products/
+  app.controller.ts
+  app.module.ts
+  main.ts
+  prisma/
+  products/
+prisma/
+  schema.prisma
+  seed.ts
 database.sql
 postman/productos-api.postman_collection.json
 ```
 
-## Variables de entorno
+## 1. Clonar el proyecto desde GitHub
 
-1. Crea un archivo `.env` tomando como base `.env.example`.
-2. Ajusta tus datos de MySQL.
-
-```env
-PORT=3000
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=tu_clave
-DB_NAME=productos_db
-```
-
-## Script de base de datos
-
-Ejecuta el archivo [database.sql](./database.sql) en MySQL. Ese script:
-
-- crea la base de datos `productos_db`
-- crea la tabla `productos`
-- inserta 2 registros de ejemplo
-
-Ejemplo:
+Clona el repositorio:
 
 ```bash
-mysql -u root -p < database.sql
+git clone https://github.com/repoProgramacion/apirestProductoORM.git
 ```
 
-## Instalacion
+Entra a la carpeta del proyecto:
+
+```bash
+cd apirestProductoORM
+```
+
+## 2. Instalar dependencias
 
 ```bash
 npm install
 ```
 
-## Ejecucion
+## 3. Configurar variables de entorno
+
+Crea el archivo `.env` usando `.env.example`:
+
+```env
+PORT=3000
+DATABASE_URL="mysql://root:tu_clave@localhost:3306/productos_db"
+```
+
+Si quieres hacerlo rapido desde terminal:
+
+```bash
+cp .env.example .env
+```
+
+Luego edita `.env` con tu usuario, clave y base de datos de MySQL.
+
+## 4. Crear la base de datos
+
+Tienes dos opciones.
+
+### Opcion A: con el script SQL
+
+Ejecuta [database.sql](./database.sql):
+
+```bash
+mysql -u root -p < database.sql
+```
+
+### Opcion B: con Prisma
+
+Primero crea la base vacia en MySQL:
+
+```sql
+CREATE DATABASE productos_db;
+```
+
+Luego ejecuta:
+
+```bash
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
+```
+
+## 5. Ejecutar la aplicacion
 
 Modo desarrollo:
 
@@ -71,28 +111,68 @@ Modo desarrollo:
 npm run dev
 ```
 
-Modo normal:
-
-```bash
-npm start
-```
-
-Compilar TypeScript:
+Compilar:
 
 ```bash
 npm run build
 ```
 
-Validar tipos:
+Ejecutar compilado:
 
 ```bash
-npm run typecheck
+npm start
 ```
 
-Pruebas:
+La API queda en:
+
+```text
+http://localhost:3000
+```
+
+## 6. Probar la aplicacion
+
+Pruebas automatizadas:
 
 ```bash
 npm test
+```
+
+Prueba manual rapida:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+## Resumen rapido para montarlo desde cero
+
+```bash
+git clone https://github.com/repoProgramacion/apirestProductoORM.git
+cd apirestProductoORM
+npm install
+cp .env.example .env
+```
+
+Despues:
+
+1. Configura tu `DATABASE_URL` en `.env`
+2. Crea la base de datos en MySQL
+3. Ejecuta uno de estos flujos:
+
+Con Prisma:
+
+```bash
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
+npm run dev
+```
+
+Con SQL:
+
+```bash
+mysql -u root -p < database.sql
+npm run prisma:generate
+npm run dev
 ```
 
 ## Endpoints
@@ -100,10 +180,10 @@ npm test
 Base URL:
 
 ```text
-http://localhost:3000
+http://localhost:3000/api
 ```
 
-### 1. Health check
+### Health check
 
 `GET /health`
 
@@ -115,34 +195,36 @@ Respuesta:
 }
 ```
 
-### 2. Obtener todos los productos
+### Obtener todos los productos
 
-`GET /api/productos`
+`GET /productos`
 
-Codigo esperado: `200 OK`
-
-### 3. Obtener producto por id
-
-`GET /api/productos/:id`
-
-Codigo esperado:
+Respuesta:
 
 - `200 OK`
-- `400 Bad Request` si el id no es valido
-- `404 Not Found` si no existe
 
-### 4. Obtener productos por nombre
+### Obtener producto por id
 
-`GET /api/productos/buscar?nombre=Mouse`
+`GET /productos/:id`
 
-Codigo esperado:
+Respuesta:
 
 - `200 OK`
-- `400 Bad Request` si falta `nombre`
+- `400 Bad Request`
+- `404 Not Found`
 
-### 5. Crear producto
+### Buscar productos por nombre
 
-`POST /api/productos`
+`GET /productos/buscar?nombre=Mouse`
+
+Respuesta:
+
+- `200 OK`
+- `400 Bad Request`
+
+### Crear producto
+
+`POST /productos`
 
 Body:
 
@@ -156,63 +238,60 @@ Body:
 }
 ```
 
-Codigo esperado:
+Respuesta:
 
 - `201 Created`
-- `400 Bad Request` si el body no es valido
-- `409 Conflict` si el nombre ya existe
+- `400 Bad Request`
+- `409 Conflict`
 
-### 6. Actualizar producto
+### Actualizar producto
 
-`PUT /api/productos/:id`
+`PUT /productos/:id`
 
 Body parcial:
 
 ```json
 {
-  "cantidad": 10,
+  "cantidad": 12,
   "estado": "inactivo"
 }
 ```
 
-Codigo esperado:
+Respuesta:
 
 - `200 OK`
 - `400 Bad Request`
 - `404 Not Found`
 - `409 Conflict`
 
-### 7. Eliminar producto
+### Eliminar producto
 
-`DELETE /api/productos/:id`
+`DELETE /productos/:id`
 
-Codigo esperado:
+Respuesta:
 
 - `204 No Content`
 - `400 Bad Request`
 - `404 Not Found`
 
-## Respuesta de producto
-
-```json
-{
-  "id": 1,
-  "nombre": "Mouse Logitech G203",
-  "descripcion": "Mouse gamer con iluminacion RGB.",
-  "cantidad": 15,
-  "estado": "activo",
-  "fotoUrl": "https://example.com/images/mouse-logitech-g203.jpg",
-  "createdAt": "2026-05-09T14:00:00.000Z",
-  "updatedAt": "2026-05-09T14:00:00.000Z"
-}
-```
-
 ## Coleccion de Postman
 
-Importa el archivo [postman/productos-api.postman_collection.json](./postman/productos-api.postman_collection.json) en Postman.
+Importa este archivo:
 
-La variable `baseUrl` ya viene configurada en:
+[postman/productos-api.postman_collection.json](./postman/productos-api.postman_collection.json)
+
+La variable `baseUrl` ya viene configurada como:
 
 ```text
 http://localhost:3000
+```
+
+## Comandos utiles
+
+```bash
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
+npm run build
+npm test
 ```
