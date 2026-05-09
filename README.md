@@ -64,7 +64,7 @@ Crea el archivo `.env` usando `.env.example`:
 
 ```env
 PORT=3000
-DATABASE_URL="mysql://root:tu_clave@localhost:3306/productos_db"
+DATABASE_URL="mysql://root:@localhost:3306/productos_db"
 ```
 
 Si quieres hacerlo rapido desde terminal:
@@ -74,6 +74,12 @@ cp .env.example .env
 ```
 
 Luego edita `.env` con tu usuario, clave y base de datos de MySQL.
+
+Si tu usuario `root` no tiene contrasena, puedes dejarlo asi:
+
+```env
+DATABASE_URL="mysql://root:@localhost:3306/productos_db"
+```
 
 ## 4. Crear la base de datos
 
@@ -140,6 +146,12 @@ npm test
 Prueba manual rapida:
 
 ```bash
+curl http://localhost:3000/health
+```
+
+Tambien funciona:
+
+```bash
 curl http://localhost:3000/api/health
 ```
 
@@ -185,7 +197,10 @@ http://localhost:3000/api
 
 ### Health check
 
-`GET /health`
+Endpoints disponibles:
+
+- `GET /health`
+- `GET /api/health`
 
 Respuesta:
 

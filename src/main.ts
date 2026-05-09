@@ -15,6 +15,10 @@ async function bootstrap() {
     })
   );
 
+  app.getHttpAdapter().get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok' });
+  });
+
   const port = Number(process.env.PORT ?? 3000);
   await app.listen(port);
   process.stdout.write(`API ejecutandose en http://localhost:${port}\n`);
